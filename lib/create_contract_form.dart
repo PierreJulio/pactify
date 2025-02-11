@@ -81,8 +81,8 @@ class _CreateContractFormState extends State<CreateContractForm> with SingleTick
     }
   }
 
-  void _addSharedEmail() {
-    final email = _emailController.text.trim();
+  void _handleEmailSubmission(String value) {
+    final email = value.trim();
     if (email.isNotEmpty && email.contains('@')) {
       setState(() {
         if (!_sharedEmails.contains(email)) {
@@ -267,43 +267,99 @@ class _CreateContractFormState extends State<CreateContractForm> with SingleTick
                               value?.isEmpty ?? true ? 'Ce champ est requis' : null,
                           ),
                           const SizedBox(height: 20),
-                          Text(
-                            'Partager avec',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _emailController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Entrez un email pour partager',
-                                    prefixIcon: const Icon(Icons.email),
-                                  ),
+                              Text(
+                                'Partager avec',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: _addSharedEmail,
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: 'Entrez l\'email et appuyez sur Entrée',
+                                  prefixIcon: const Icon(Icons.email),
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.send),
+                                    onPressed: () => _handleEmailSubmission(_emailController.text),
+                                    tooltip: 'Ajouter',
+                                  ),
+                                ),
+                                onFieldSubmitted: _handleEmailSubmission,
                               ),
+                              const SizedBox(height: 16),
+                              if (_sharedEmails.isNotEmpty) ...[
+                                Text(
+                                  'Participants invités :',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                    ),
+                                  ),
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _sharedEmails.map((email) => Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.person_outline,
+                                            size: 16,
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            email,
+                                            style: TextStyle(
+                                              color: Theme.of(context).colorScheme.primary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                _sharedEmails.remove(email);
+                                              });
+                                            },
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(4),
+                                              child: Icon(
+                                                Icons.close,
+                                                size: 16,
+                                                color: Theme.of(context).colorScheme.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )).toList(),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            children: _sharedEmails.map((email) => Chip(
-                              label: Text(email),
-                              onDeleted: () {
-                                setState(() {
-                                  _sharedEmails.remove(email);
-                                });
-                              },
-                            )).toList(),
                           ),
                           const SizedBox(height: 32),
                           SizedBox(
