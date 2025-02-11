@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'pages/login_page.dart';
@@ -7,12 +8,15 @@ import 'homepage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  if (Firebase.apps.isEmpty) {
+  setUrlStrategy(PathUrlStrategy()); // Pour une meilleure gestion des URLs sur le web
+
+  try {
     await Firebase.initializeApp(
       options: firebaseConfig,
     );
-    print('Firebase initialized successfully'); // Debug print
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Error initializing Firebase: $e');
   }
   
   runApp(const MainApp());
