@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/contract_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'services/consequence_generator.dart';
 
 class CreateContractForm extends StatefulWidget {
   const CreateContractForm({super.key});
@@ -20,6 +21,7 @@ class _CreateContractFormState extends State<CreateContractForm> with SingleTick
   final _consequencesController = TextEditingController();
   final List<String> _sharedEmails = [];
   final _emailController = TextEditingController();
+  List<String> _suggestedConsequences = [];
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -35,6 +37,7 @@ class _CreateContractFormState extends State<CreateContractForm> with SingleTick
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
     _controller.forward();
+    _suggestedConsequences = ConsequenceGenerator.generateMultipleConsequences(3);
   }
 
   @override
@@ -91,6 +94,100 @@ class _CreateContractFormState extends State<CreateContractForm> with SingleTick
       });
       _emailController.clear();
     }
+  }
+
+  void _regenerateConsequences() {
+    setState(() {
+      _suggestedConsequences = ConsequenceGenerator.generateMultipleConsequences(3);
+    });
+  }
+
+  Widget _buildConsequencesField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Conséquences',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _regenerateConsequences,
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Générer d\'autres suggestions'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _consequencesController,
+          decoration: InputDecoration(
+            hintText: 'Que se passe-t-il si les termes sont rompus ?',
+            prefixIcon: Icon(Icons.warning_outlined, color: Theme.of(context).colorScheme.primary),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+                width: 1,
+              ),
+            ),
+          ),
+          maxLines: 2,
+          validator: (value) => value?.isEmpty ?? true ? 'Ce champ est requis' : null,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _suggestedConsequences.map((consequence) => ActionChip(
+            label: Text(
+              consequence,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            avatar: Icon(
+              Icons.add,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            onPressed: () {
+              _consequencesController.text = consequence;
+            },
+          )).toList(),
+        ),
+      ],
+    );
   }
 
   @override
@@ -257,15 +354,7 @@ class _CreateContractFormState extends State<CreateContractForm> with SingleTick
                             ],
                           ),
                           const SizedBox(height: 20),
-                          _buildFormField(
-                            controller: _consequencesController,
-                            label: 'Conséquences',
-                            hint: 'Que se passe-t-il si les termes sont rompus ?',
-                            icon: Icons.warning_outlined,
-                            maxLines: 2,
-                            validator: (value) => 
-                              value?.isEmpty ?? true ? 'Ce champ est requis' : null,
-                          ),
+                          _buildConsequencesField(),
                           const SizedBox(height: 20),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
