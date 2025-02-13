@@ -27,3 +27,5 @@ flutter:
   uses-material-design: true
   assets:
     - lib/assets/Google__G__logo.svg
+    - lib/assets/logo.jpg  # Ajout du logo
+

@@ -439,7 +439,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // Ajout du bouton pour voir les participants
+            // Ajout du bouton pour voir les participants avec séparation
             Container(
               decoration: BoxDecoration(
                 border: Border(
@@ -476,8 +476,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  // Ajout du bouton de chat de groupe si plusieurs participants
-                  if (totalParticipants > 1)
+                  if (totalParticipants > 1) ...[
+                    Container(
+                      width: 1,
+                      height: 24,
+                      color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                    ),
                     Expanded(
                       child: Material(
                         color: Colors.transparent,
@@ -516,6 +520,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),
@@ -902,7 +907,8 @@ class _HomePageState extends State<HomePage> {
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.person_outline),
+              icon: const Icon(
+                    Icons.logout_outlined),
               onPressed: () async {
                 await _auth.signOut();
                 if (mounted) Navigator.of(context).pushReplacementNamed('/login');
