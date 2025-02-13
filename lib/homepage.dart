@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'create_contract_form.dart';
 import 'services/contract_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'pages/chat_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -86,6 +87,11 @@ class _HomePageState extends State<HomePage> {
       final duration = (data['duration'] as num?)?.toInt() ?? 30;
       final createdAt = data['createdAt'] as Timestamp? ?? Timestamp.now();
       final isCreator = data['createdByEmail'] == userEmail;  // <-- Modification ici
+
+      // On récupère la liste des emails partagés (s'il y en a)
+      final sharedEmails = (data['sharedEmails'] as List<dynamic>? ?? []).cast<String>();
+      // Nombre total de participants = créateur + partagés
+      final totalParticipants = 1 + sharedEmails.length;
 
       final userTransgressions = _contractService.getTransgressionCount(data, userEmail);
       final hasUserFailed = _contractService.hasUserFailed(data, userEmail);
@@ -442,32 +448,75 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _showParticipants(context, data),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.group_outlined,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Voir les participants',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w500,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _showParticipants(context, data),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.group_outlined,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Voir les participants',
+                                style: TextStyle(fontWeight: FontWeight.w500),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  // Ajout du bouton de chat de groupe si plusieurs participants
+                  if (totalParticipants >= 1)
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            final participants = <String>[data['createdByEmail']];
+                            participants.addAll(sharedEmails);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                  contractId: doc.id,
+                                  participants: participants,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.chat,
+                                  size: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Chat de groupe',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -865,19 +914,8 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-        leading: Container(
-          margin: const EdgeInsets.only(left: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              // Menu functionality if needed
-            },
-          ),
-        ),
+        // Supprimer le leading (bouton menu hamburger)
+        automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<List<QueryDocumentSnapshot>>(
         stream: _contractService.getActiveContracts().map((snapshot) => snapshot.docs),
