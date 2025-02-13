@@ -669,20 +669,27 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Transgressions',
+              'Vies restantes',  // Changé de "Transgressions" à "Vies restantes"
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
-            Text(
-              '$transgressions/5',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: hasUserFailed
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
+            Row(
+              children: List.generate(
+                5,
+                (index) => Padding(
+                  padding: const EdgeInsets.only(left: 2),
+                  child: Icon(
+                    index < (5 - transgressions) ? Icons.favorite : Icons.heart_broken,
+                    size: 14,
+                    color: hasUserFailed
+                        ? Theme.of(context).colorScheme.error
+                        : index < (5 - transgressions)
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.surfaceVariant,
+                  ),
+                ),
               ),
             ),
           ],
@@ -691,7 +698,7 @@ class _HomePageState extends State<HomePage> {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: transgressions / 5,
+            value: (5 - transgressions) / 5,  // Inversé pour montrer les vies restantes
             backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
             valueColor: AlwaysStoppedAnimation<Color>(
               hasUserFailed
@@ -708,7 +715,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTransgressionDots(BuildContext context, int count, bool hasUserFailed) {
-    Color dotColor = hasUserFailed
+    Color heartColor = hasUserFailed
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
 
@@ -716,13 +723,14 @@ class _HomePageState extends State<HomePage> {
       children: List.generate(
         5,
         (index) => Container(
-          width: 8,
-          height: 8,
+          width: 16,
+          height: 16,
           margin: const EdgeInsets.only(left: 4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
+          child: Icon(
+            index < count ? Icons.heart_broken : Icons.favorite,
+            size: 16,
             color: index < count 
-                ? dotColor 
+                ? heartColor 
                 : Theme.of(context).colorScheme.surfaceVariant,
           ),
         ),
