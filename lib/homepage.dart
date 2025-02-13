@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> {
       final isCreator = data['createdByEmail'] == userEmail;  // <-- Modification ici
 
       // On récupère la liste des emails partagés (s'il y en a)
-      final sharedEmails = (data['sharedEmails'] as List<dynamic>? ?? []).cast<String>();
+      final sharedEmails = (data['sharedWith'] as List<dynamic>? ?? []).cast<String>();
       // Nombre total de participants = créateur + partagés
       final totalParticipants = 1 + sharedEmails.length;
 
@@ -477,7 +477,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   // Ajout du bouton de chat de groupe si plusieurs participants
-                  if (totalParticipants >= 1)
+                  if (totalParticipants > 1)
                     Expanded(
                       child: Material(
                         color: Colors.transparent,
