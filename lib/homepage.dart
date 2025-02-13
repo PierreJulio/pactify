@@ -870,33 +870,30 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.secondary,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'PACTIFY',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
         centerTitle: true,
+        automaticallyImplyLeading: false,
+        leading: const SizedBox(width: 48), // Pour équilibrer avec l'icône de droite
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            'PACTIFY',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+              color: Colors.white,
+            ),
+          ),
+        ),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 8),
@@ -914,8 +911,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-        // Supprimer le leading (bouton menu hamburger)
-        automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<List<QueryDocumentSnapshot>>(
         stream: _contractService.getActiveContracts().map((snapshot) => snapshot.docs),
