@@ -154,4 +154,26 @@ class ContractService {
   Future<void> triggerConsequence(String contractId, String userId) async {
     // Implement consequence triggering logic
   }
+
+  Future<void> deleteContract(String contractId) async {
+    final user = _auth.currentUser;
+    if (user == null) throw 'User not authenticated';
+
+    try {
+      final doc = await contracts.doc(contractId).get();
+      if (!doc.exists) throw 'Contract not found';
+
+      final data = doc.data() as Map<String, dynamic>;
+      
+      // Vérifier si l'utilisateur est le créateur
+      if (data['createdByEmail'] != user.email) {
+        throw 'Only the creator can delete this contract';
+      }
+
+      await contracts.doc(contractId).delete();
+    } catch (e) {
+      print('Error deleting contract: $e');
+      rethrow;
+    }
+  }
 }
