@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -85,6 +86,32 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             _isLoading = false;
           });
         }
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await _authService.signInWithGoogle();
+      if (mounted && result != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        setState(() {
+          _errorMessage = 'Échec de la connexion avec Google';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erreur lors de la connexion avec Google: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -201,6 +228,45 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             TextButton(
                               onPressed: _isLoading ? null : () => Navigator.pushNamed(context, '/register'),
                               child: const Text('Créer un compte'),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(child: Divider()),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'ou',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.outline,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(child: Divider()),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            OutlinedButton.icon(
+                              onPressed: _isLoading ? null : _handleGoogleSignIn,
+                              icon: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: SvgPicture.asset(
+                                  'lib/assets/Google__G__logo.svg',
+                                  placeholderBuilder: (context) => const Icon(Icons.g_mobiledata),
+                                ),
+                              ),
+                              label: const Text('Continuer avec Google'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: Colors.white,
+                              ),
                             ),
                           ],
                         ),
