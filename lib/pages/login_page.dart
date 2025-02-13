@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -48,7 +49,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  void _handleLogin() async {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
         _isLoading = true;
@@ -56,6 +57,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       });
 
       try {
+        await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
         print('Attempting login with email: ${_emailController.text}'); // Debug print
         
         _email = _emailController.text;

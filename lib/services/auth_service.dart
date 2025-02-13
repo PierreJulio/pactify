@@ -1,7 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
-class AuthService {
+class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? _user;
+
+  AuthService() {
+    _auth.authStateChanges().listen((User? user) {
+      _user = user;
+      notifyListeners();
+    });
+  }
+
+  User? get currentUser => _user;
+  bool get isAuthenticated => _user != null;
 
   // Sign in with email and password
   Future<UserCredential?> signIn(String email, String password) async {
@@ -46,4 +58,6 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 }
