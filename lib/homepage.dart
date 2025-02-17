@@ -805,23 +805,7 @@ class _HomePageState extends State<HomePage> {
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
-            Row(
-              children: List.generate(
-                5,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(left: 2),
-                  child: Icon(
-                    index < (5 - transgressions) ? Icons.favorite : Icons.heart_broken,
-                    size: 14,
-                    color: hasUserFailed
-                        ? Theme.of(context).colorScheme.error
-                        : index < (5 - transgressions)
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surfaceVariant,
-                  ),
-                ),
-              ),
-            ),
+            _buildTransgressionDots(context, transgressions, hasUserFailed),
           ],
         ),
         const SizedBox(height: 8),
