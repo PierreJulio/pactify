@@ -84,6 +84,8 @@ class ProofHistoryPage extends StatelessWidget {
   Widget _buildProofBubble(BuildContext context, Map<String, dynamic> proof, bool isCurrentUser) {
     final isTransgression = proof['type'] == 'transgression';
     final timestamp = (proof['timestamp'] as Timestamp).toDate();
+    final hasProof = proof['hasProof'] ?? false;
+    final imageUrl = proof['imageUrl'];
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -145,7 +147,7 @@ class ProofHistoryPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                if (proof['hasProof'] == false)
+                if (!hasProof)
                   Container(
                     padding: const EdgeInsets.all(16),
                     margin: const EdgeInsets.symmetric(vertical: 8),
@@ -171,11 +173,11 @@ class ProofHistoryPage extends StatelessWidget {
                       ],
                     ),
                   )
-                else if (proof['imageUrl'] != null)
+                else if (imageUrl != null)
                   GestureDetector(
-                    onTap: () => _showFullImage(context, proof['imageUrl']),
+                    onTap: () => _showFullImage(context, imageUrl),
                     child: Hero(
-                      tag: proof['imageUrl'],
+                      tag: imageUrl,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Container(

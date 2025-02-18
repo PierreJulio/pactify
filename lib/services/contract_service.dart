@@ -84,7 +84,7 @@ class ContractService {
 
     try {
       final String? imageUrl = await _imageService.uploadImage(context);
-      if (imageUrl == null) return; // L'utilisateur a annulé complètement
+      if (imageUrl == null) return; // L'utilisateur a complètement annulé
 
       final doc = await contracts.doc(contractId).get();
       if (!doc.exists) throw 'Contract not found';
@@ -95,7 +95,6 @@ class ContractService {
       final currentCount = (transgressions[user.email!] as int?) ?? 0;
       transgressions[user.email!] = currentCount + 1;
 
-      // Ajout de la preuve seulement si une image a été fournie
       final proofs = List<Map<String, dynamic>>.from(data['proofs'] ?? []);
       proofs.add({
         'type': 'transgression',
@@ -125,9 +124,8 @@ class ContractService {
     if (user == null) throw 'User not authenticated';
 
     try {
-      // Upload de la photo avec le contexte passé directement
       final String? imageUrl = await _imageService.uploadImage(context);
-      if (imageUrl == null) return; // L'utilisateur a annulé la sélection
+      if (imageUrl == null) return; // L'utilisateur a complètement annulé
 
       final doc = await contracts.doc(contractId).get();
       if (!doc.exists) throw 'Contract not found';
@@ -135,18 +133,17 @@ class ContractService {
       final data = doc.data() as Map<String, dynamic>;
       Map<String, dynamic> transgressions = Map<String, dynamic>.from(data['transgressions'] ?? {});
       
-      // Utiliser l'email au lieu de l'userId
       final currentCount = (transgressions[user.email!] as int?) ?? 0;
       if (currentCount > 0) {
         transgressions[user.email!] = currentCount - 1;
 
-        // Stockage de la preuve avec Timestamp.now() au lieu de FieldValue.serverTimestamp()
         final proofs = List<Map<String, dynamic>>.from(data['proofs'] ?? []);
         proofs.add({
           'type': 'good_action',
           'userId': user.email,
-          'imageUrl': imageUrl,
-          'timestamp': Timestamp.now(), // Modification ici
+          'imageUrl': imageUrl == 'no_proof' ? null : imageUrl,
+          'hasProof': imageUrl != 'no_proof',
+          'timestamp': Timestamp.now(),
         });
 
         await contracts.doc(contractId).update({
