@@ -4,6 +4,7 @@ import 'create_contract_form.dart';
 import 'services/contract_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'pages/chat_page.dart';
+import 'pages/proof_history_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -522,6 +523,47 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ],
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProofHistoryPage(
+                        contractId: doc.id,
+                        title: data['title'],
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Voir l\'historique des preuves',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

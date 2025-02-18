@@ -13,6 +13,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setUrlStrategy(PathUrlStrategy()); // Pour une meilleure gestion des URLs sur le web
 
+  // L'enregistrement du plugin image_picker n'est plus nécessaire car il est géré automatiquement
+  // par Flutter web depuis les dernières versions
+
   try {
     await Firebase.initializeApp(
       options: firebaseConfig,

@@ -57,13 +57,43 @@
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
         },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
+        onEntrypointLoaded: async function(engineInitializer) {
+          // Initialiser les plugins web
+          let plugins = [
+            { name: 'image_picker', web: 'https://pub.dev/packages/image_picker_for_web' }
+          ];
+
+          plugins.forEach(function(plugin) {
+            if (window.hasOwnProperty(plugin.name)) {
+              console.log(`${plugin.name} is already registered`);
+            } else {
+              console.log(`Registering ${plugin.name} web implementation`);
+              window[plugin.name] = true;
+            }
           });
+
+          const appRunner = await engineInitializer.initializeEngine();
+          await appRunner.runApp();
         }
       });
     });
   </script>
+
+  <!-- Ajoutez ces permissions pour l'accès à la caméra -->
+  <script>
+    if (typeof navigator.mediaDevices === 'undefined' || typeof navigator.mediaDevices.getUserMedia === 'undefined') {
+      navigator.mediaDevices = {};
+      navigator.mediaDevices.getUserMedia = function(constraints) {
+        var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        if (!getUserMedia) {
+          return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+        }
+        return new Promise(function(resolve, reject) {
+          getUserMedia.call(navigator, constraints, resolve, reject);
+        });
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </body>
 </html>

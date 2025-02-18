@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rxdart/rxdart.dart';
+import 'image_service.dart';
 
 class ContractService {
   final CollectionReference contracts = FirebaseFirestore.instance.collection('contracts');
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImageService _imageService = ImageService();
 
   // Create new contract
   Future<void> createContract(String title, String description, int duration, String consequences, List<String> sharedWith) async {
@@ -78,6 +80,10 @@ class ContractService {
     if (user == null) throw 'User not authenticated';
 
     try {
+      // Upload de la photo
+      final String? imageUrl = await _imageService.uploadImage();
+      if (imageUrl == null) throw 'No image provided';
+
       final doc = await contracts.doc(contractId).get();
       if (!doc.exists) throw 'Contract not found';
 
@@ -88,8 +94,18 @@ class ContractService {
       final currentCount = (transgressions[user.email!] as int?) ?? 0;
       transgressions[user.email!] = currentCount + 1;
 
+      // Stockage de la preuve avec Timestamp.now() au lieu de FieldValue.serverTimestamp()
+      final proofs = List<Map<String, dynamic>>.from(data['proofs'] ?? []);
+      proofs.add({
+        'type': 'transgression',
+        'userId': user.email,
+        'imageUrl': imageUrl,
+        'timestamp': Timestamp.now(), // Modification ici
+      });
+
       await contracts.doc(contractId).update({
         'transgressions': transgressions,
+        'proofs': proofs,
       });
 
       if (currentCount + 1 >= 5) {
@@ -107,6 +123,10 @@ class ContractService {
     if (user == null) throw 'User not authenticated';
 
     try {
+      // Upload de la photo
+      final String? imageUrl = await _imageService.uploadImage();
+      if (imageUrl == null) throw 'No image provided';
+
       final doc = await contracts.doc(contractId).get();
       if (!doc.exists) throw 'Contract not found';
 
@@ -117,8 +137,19 @@ class ContractService {
       final currentCount = (transgressions[user.email!] as int?) ?? 0;
       if (currentCount > 0) {
         transgressions[user.email!] = currentCount - 1;
+
+        // Stockage de la preuve avec Timestamp.now() au lieu de FieldValue.serverTimestamp()
+        final proofs = List<Map<String, dynamic>>.from(data['proofs'] ?? []);
+        proofs.add({
+          'type': 'good_action',
+          'userId': user.email,
+          'imageUrl': imageUrl,
+          'timestamp': Timestamp.now(), // Modification ici
+        });
+
         await contracts.doc(contractId).update({
           'transgressions': transgressions,
+          'proofs': proofs,
         });
       }
     } catch (e) {
