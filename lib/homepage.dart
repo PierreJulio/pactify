@@ -333,7 +333,7 @@ class _HomePageState extends State<HomePage> {
                       child: InkWell(
                         onTap: userTransgressions > 0 
                             ? () async {
-                                await _contractService.removeTransgression(doc.id);
+                                await _contractService.removeTransgression(doc.id, context);
                               }
                             : null,
                         child: Padding(
@@ -374,7 +374,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () async {
-                          await _contractService.reportTransgression(doc.id);
+                          await _contractService.reportTransgression(doc.id, context);
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),

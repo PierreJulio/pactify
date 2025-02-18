@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'image_service.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 class ContractService {
   final CollectionReference contracts = FirebaseFirestore.instance.collection('contracts');
@@ -75,14 +78,13 @@ class ContractService {
   }
 
   // Report transgression
-  Future<void> reportTransgression(String contractId) async {
+  Future<void> reportTransgression(String contractId, BuildContext context) async {
     final user = _auth.currentUser;
     if (user == null) throw 'User not authenticated';
 
     try {
-      // Upload de la photo
-      final String? imageUrl = await _imageService.uploadImage();
-      if (imageUrl == null) throw 'No image provided';
+      final String? imageUrl = await _imageService.uploadImage(context);
+      if (imageUrl == null) return; // L'utilisateur a annulé complètement
 
       final doc = await contracts.doc(contractId).get();
       if (!doc.exists) throw 'Contract not found';
@@ -90,17 +92,17 @@ class ContractService {
       final data = doc.data() as Map<String, dynamic>;
       Map<String, dynamic> transgressions = Map<String, dynamic>.from(data['transgressions'] ?? {});
       
-      // Utiliser l'email au lieu de l'userId
       final currentCount = (transgressions[user.email!] as int?) ?? 0;
       transgressions[user.email!] = currentCount + 1;
 
-      // Stockage de la preuve avec Timestamp.now() au lieu de FieldValue.serverTimestamp()
+      // Ajout de la preuve seulement si une image a été fournie
       final proofs = List<Map<String, dynamic>>.from(data['proofs'] ?? []);
       proofs.add({
         'type': 'transgression',
         'userId': user.email,
-        'imageUrl': imageUrl,
-        'timestamp': Timestamp.now(), // Modification ici
+        'imageUrl': imageUrl == 'no_proof' ? null : imageUrl,
+        'hasProof': imageUrl != 'no_proof',
+        'timestamp': Timestamp.now(),
       });
 
       await contracts.doc(contractId).update({
@@ -118,14 +120,14 @@ class ContractService {
   }
 
   // Remove transgression (good action)
-  Future<void> removeTransgression(String contractId) async {
+  Future<void> removeTransgression(String contractId, BuildContext context) async {
     final user = _auth.currentUser;
     if (user == null) throw 'User not authenticated';
 
     try {
-      // Upload de la photo
-      final String? imageUrl = await _imageService.uploadImage();
-      if (imageUrl == null) throw 'No image provided';
+      // Upload de la photo avec le contexte passé directement
+      final String? imageUrl = await _imageService.uploadImage(context);
+      if (imageUrl == null) return; // L'utilisateur a annulé la sélection
 
       final doc = await contracts.doc(contractId).get();
       if (!doc.exists) throw 'Contract not found';

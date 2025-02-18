@@ -34,6 +34,36 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final currentUser = FirebaseAuth.instance.currentUser;
+  bool _shouldScrollToBottom = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      // Vérifier si on est proche du bas
+      if (_scrollController.position.pixels >
+          _scrollController.position.maxScrollExtent - 100) {
+        _shouldScrollToBottom = true;
+      } else {
+        _shouldScrollToBottom = false;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_shouldScrollToBottom && _scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.jumpTo(0);  // Pour le ListView.reverse
+      });
+    }
+  }
 
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
@@ -51,21 +81,14 @@ class _ChatPageState extends State<ChatPage> {
       });
 
       _messageController.clear();
+      _shouldScrollToBottom = true;
       _scrollToBottom();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
-      );
-    }
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
     }
   }
 
@@ -114,7 +137,7 @@ class _ChatPageState extends State<ChatPage> {
                     .collection('contracts')
                     .doc(widget.contractId)
                     .collection('messages')
-                    .orderBy('timestamp', descending: false)
+                    .orderBy('timestamp', descending: true) // Inverser l'ordre
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
@@ -126,6 +149,10 @@ class _ChatPageState extends State<ChatPage> {
                   }
 
                   final messages = snapshot.data!.docs;
+
+                  if (messages.isNotEmpty && _shouldScrollToBottom) {
+                    _scrollToBottom();
+                  }
 
                   if (messages.isEmpty) {
                     return Center(
@@ -152,6 +179,7 @@ class _ChatPageState extends State<ChatPage> {
 
                   return ListView.builder(
                     controller: _scrollController,
+                    reverse: true, // Inverser le défilement
                     padding: const EdgeInsets.all(16),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
