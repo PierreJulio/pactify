@@ -1,13 +1,21 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class ImageService {
   static const String apiKey = 'afbf9a190f8bae413989d9841c02d7b8';
   static const String apiUrl = 'https://api.imgbb.com/1/upload';
   final ImagePicker _picker = ImagePicker();
+  
+  // Cache pour stocker les images déjà chargées
+  static final Map<String, Uint8List> _imageCache = {};
 
   Future<String?> uploadImage(BuildContext context) async {
     try {
@@ -89,7 +97,8 @@ class ImageService {
         );
       }
 
-      final bytes = await image.readAsBytes();
+      // Compression de l'image avant l'upload
+      final bytes = await _compressImage(image);
       final base64Image = base64Encode(bytes);
 
       final response = await http.post(
@@ -115,6 +124,49 @@ class ImageService {
       print('Error uploading image: $e');
       rethrow;
     }
+  }
+
+  // Méthode pour compresser l'image
+  Future<Uint8List> _compressImage(XFile file) async {
+    if (kIsWeb) {
+      // Sur le web, on n'a pas accès à la compression native, on utilise les bytes directement
+      return await file.readAsBytes();
+    }
+
+    final filePath = file.path;
+    final dir = await getTemporaryDirectory();
+    final targetPath = path.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}.jpg');
+    
+    var result = await FlutterImageCompress.compressAndGetFile(
+      filePath,
+      targetPath,
+      quality: 70,
+      minWidth: 1024,
+      minHeight: 1024,
+    );
+    
+    return result?.readAsBytes() ?? await file.readAsBytes();
+  }
+
+  // Nouvelle méthode pour charger une image depuis l'URL avec cache
+  static Future<Uint8List?> loadImageFromUrl(String url) async {
+    // Vérifier si l'image est déjà en cache
+    if (_imageCache.containsKey(url)) {
+      return _imageCache[url];
+    }
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        // Stocker l'image dans le cache
+        _imageCache[url] = bytes;
+        return bytes;
+      }
+    } catch (e) {
+      print('Error loading image: $e');
+    }
+    return null;
   }
 
   Widget _buildOptionTile(

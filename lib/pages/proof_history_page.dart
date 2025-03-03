@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../services/image_service.dart';
 
 class ProofHistoryPage extends StatelessWidget {
   final String contractId;
@@ -192,29 +194,32 @@ class ProofHistoryPage extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: Image.network(
-                            proof['imageUrl'],
-                            fit: BoxFit.cover,
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
                             width: MediaQuery.of(context).size.width * 0.6,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                width: MediaQuery.of(context).size.width * 0.6,
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.surfaceVariant,
-                                  borderRadius: BorderRadius.circular(16),
+                            height: 200,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Theme.of(context).colorScheme.surfaceVariant,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                  ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Theme.of(context).colorScheme.errorContainer,
+                              child: Center(
+                                child: Icon(
+                                  Icons.error_outline,
+                                  color: Theme.of(context).colorScheme.error,
                                 ),
-                              );
-                            },
+                              ),
+                            ),
+                            fadeInDuration: const Duration(milliseconds: 300),
+                            memCacheHeight: 400,
+                            memCacheWidth: 600,
                           ),
                         ),
                       ),
@@ -255,9 +260,27 @@ class ProofHistoryPage extends StatelessWidget {
                 color: Colors.black87,
                 child: Hero(
                   tag: imageUrl,
-                  child: Image.network(
-                    imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
                     fit: BoxFit.contain,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.white, size: 48),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Impossible de charger l'image",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
