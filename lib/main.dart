@@ -58,7 +58,7 @@ void main() async {
               borderSide: BorderSide.none,
             ),
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -116,7 +116,7 @@ class MainApp extends StatelessWidget {
             borderSide: BorderSide.none,
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
