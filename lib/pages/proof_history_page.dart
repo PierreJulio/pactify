@@ -8,7 +8,7 @@ class ProofHistoryPage extends StatelessWidget {
   final String contractId;
   final String title;
   final ScrollController _scrollController = ScrollController();
-  final String currentUserEmail = FirebaseAuth.instance.currentUser?.email ?? '';
+  final String currentUserEmail = FirebaseAuth.instance.currentUser?.email ?? '';  // Récupère l'email de l'utilisateur connecté
 
   ProofHistoryPage({
     super.key,
